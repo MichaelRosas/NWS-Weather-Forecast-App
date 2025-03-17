@@ -9,9 +9,9 @@ import java.net.http.HttpResponse;
 
 
 public class MyWeatherAPI extends WeatherAPI {
-    public static PointProperties getPoint(double lat, double lon) {
+    public static PointProperties getPoint(double lat, double lng) {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.weather.gov/points/"+String.valueOf(lat)+","+String.valueOf(lon)))
+                .uri(URI.create("https://api.weather.gov/points/"+String.valueOf(lat)+","+String.valueOf(lng)))
                 //.method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
         HttpResponse<String> response = null;
