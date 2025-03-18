@@ -69,6 +69,7 @@ public class JavaFX extends Application {
 				updateWeather(selectedCity);
 			}
 		});
+		cityBox.setStyle("-fx-background-color: white; -fx-font-family: 'Roboto Thin';  -fx-font-size: 16px; -fx-border-radius: 10px; -fx-padding: 5px;");
 
 		clearNightIcon = new Image("icons/clear-night.png");
 		clearDayIcon = new Image("icons/clear-day.png");
@@ -88,6 +89,8 @@ public class JavaFX extends Application {
 		mistIcon = new Image("icons/mist.png");
 		windyIcon = new Image("icons/wind.png");
 		weatherIconView = new ImageView();
+		weatherIconView.setFitWidth(120);
+		weatherIconView.setFitHeight(120);
 		
 		String shortForecast = forecast.get(0).shortForecast;
 		if (shortForecast.toLowerCase().contains("hurricane")) {
@@ -127,26 +130,27 @@ public class JavaFX extends Application {
 				weatherIconView.setImage(clearNightIcon);
 			}
 		}
-		weatherIconView.setFitWidth(100);
-		weatherIconView.setFitHeight(100);
+		weatherIconView.setFitWidth(150);
+		weatherIconView.setFitHeight(150);
 
 		temperature = new Label(String.valueOf(forecast.get(0).temperature) + "°");
 		temperature.setMaxWidth(150);
-		temperature.setStyle("-fx-font-size: 50px; -fx-font-weight: bold;");
+		temperature.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 80px; -fx-font-weight: 300; -fx-text-fill: white;");
 		temperature.setAlignment(Pos.CENTER);
 		weather = new Label(forecast.get(0).shortForecast);
 		weather.setMaxWidth(400);
+		weather.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 24px; -fx-font-weight: 200; -fx-text-fill: white;");
 		weather.setAlignment(Pos.CENTER);
 
-		precipitationIcon = new Image("images/icons/precipitation.png");
+		precipitationIcon = new Image("icons/precipitation.png");
 		precipitationIconView = new ImageView(precipitationIcon);
 		precipitationIconView.setFitWidth(50);
 		precipitationIconView.setFitHeight(50);
-		speedIcon = new Image("images/icons/speed.png");
+		speedIcon = new Image("icons/speed.png");
 		speedIconView = new ImageView(speedIcon);
 		speedIconView.setFitWidth(50);
 		speedIconView.setFitHeight(50);
-		directionIcon = new Image("images/icons/direction.png");
+		directionIcon = new Image("icons/direction.png");
 		directionIconView = new ImageView(directionIcon);
 		directionIconView.setFitWidth(50);
 		directionIconView.setFitHeight(50);
@@ -154,19 +158,25 @@ public class JavaFX extends Application {
 		precipitationText = new Label("Precipitation");
 		precipitationText.setMaxWidth(100);
 		precipitationText.setAlignment(Pos.CENTER);
+		precipitationText.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 100;");
 		speedText = new Label("Wind Speed");
 		speedText.setMaxWidth(100);
 		speedText.setAlignment(Pos.CENTER);
+		speedText.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 100;");
 		directionText = new Label("Wind Direction");
 		directionText.setMaxWidth(100);
 		directionText.setAlignment(Pos.CENTER);
+		directionText.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 100;");
 
 		precipitationValue = new Label(String.valueOf(forecast.get(0).probabilityOfPrecipitation.value) + "%");
 		precipitationValue.setMaxWidth(80);
 		precipitationValue.setAlignment(Pos.CENTER);
+		precipitationValue.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 200; -fx-font-size: 16;");
 		speedValue = new Label(forecast.get(0).windSpeed);
-		speedValue.setMaxWidth(80);
+		speedValue.setMaxWidth(95);
+		speedValue.setPrefWidth(95);
 		speedValue.setAlignment(Pos.CENTER);
+		speedValue.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 200; -fx-font-size: 16;");
 		if(Objects.equals(forecast.get(0).windSpeed, "0 mph")) {
 			directionValue = new Label("N/A");
 		} else {
@@ -174,32 +184,38 @@ public class JavaFX extends Application {
 		}
 		directionValue.setMaxWidth(80);
 		directionValue.setAlignment(Pos.CENTER);
+		directionValue.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 200; -fx-font-size: 16;");
 
 		precipitationBox = new VBox(10, precipitationIconView, precipitationValue, precipitationText);
 		precipitationBox.setAlignment(Pos.CENTER);
+		precipitationBox.setMaxWidth(115);
 		speedBox = new VBox(10, speedIconView, speedValue, speedText);
 		speedBox.setAlignment(Pos.CENTER);
+		speedBox.setMaxWidth(115);
 		directionBox = new VBox(10, directionIconView, directionValue, directionText);
 		directionBox.setAlignment(Pos.CENTER);
+		directionBox.setMaxWidth(115);
 
-		infoBox = new HBox(30, precipitationBox, speedBox, directionBox);
-		infoBox.setStyle("-fx-background-color: rgba(255,255,255,0.7); -fx-background-radius: 10; -fx-padding: 10;");
+		infoBox = new HBox(20, precipitationBox, speedBox, directionBox);
+		infoBox.setStyle("-fx-background-color: rgba(186,186,186,0.3); -fx-background-radius: 20px; -fx-padding: 10px 20px;");
 		infoBox.setAlignment(Pos.CENTER);
-		infoBox.setMaxWidth(300);
+		infoBox.setMaxWidth(345);
+		infoBox.setSpacing(30);
 
-		change = new Button("3 Day Forecast");
-		change.setPrefWidth(100);
+		change = new Button("See 3 Day Forecast");
+		change.setStyle("-fx-background-color: #FFA500; -fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px 20px; -fx-background-radius: 20px;");
+		change.setPrefWidth(200);
 
-		root = new VBox(20, cityBox, weatherIconView, temperature, weather, infoBox, change);
+		root = new VBox(10, cityBox, weatherIconView, temperature, weather, infoBox, change);
 		if(forecast.get(0).isDaytime) {
-			root.setStyle("-fx-background-color: #ADD8E6;");
+			root.setStyle("-fx-background-color: linear-gradient(to bottom, #87CEFA, #4682B4); -fx-padding: 20px;");
 		} else {
-			root.setStyle("-fx-background-color: #676890;");
+			root.setStyle("-fx-background-color: linear-gradient(to bottom, #5c5ec1, #3d3f9c); -fx-padding: 20px;");
 		}
 		root.setAlignment(Pos.CENTER);
-		root.setSpacing(15);
+		root.setSpacing(20);
 
-		Scene scene = new Scene(root, 600, 600);
+		Scene scene = new Scene(root, 480, 680);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
@@ -226,9 +242,9 @@ public class JavaFX extends Application {
 				directionValue.setText(forecast.get(0).windDirection);
 			}
 			if(forecast.get(0).isDaytime) {
-				root.setStyle("-fx-background-color: #ADD8E6;");
+				root.setStyle("-fx-background-color: linear-gradient(to bottom, #87CEFA, #4682B4); -fx-padding: 20px;");
 			} else {
-				root.setStyle("-fx-background-color: #676890;");
+				root.setStyle("-fx-background-color: linear-gradient(to bottom, #5c5ec1, #3d3f9c); -fx-padding: 20px;");
 			}
 
 			String shortForecast = forecast.get(0).shortForecast;
