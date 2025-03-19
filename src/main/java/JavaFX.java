@@ -52,7 +52,7 @@ public class JavaFX extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		primaryStage.setTitle("Weather");
-		PointProperties location = MyWeatherAPI.getPoint(41.8781,-87.6298);
+		PointProperties location = MyWeatherAPI.getPoint(41.8373,-87.6862);
 		if (location == null){
 			throw new RuntimeException("Location did not load");
 		}
@@ -100,10 +100,10 @@ public class JavaFX extends Application {
 		temperature.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 80px; -fx-font-weight: 300; -fx-text-fill: white;");
 		temperature.setAlignment(Pos.CENTER);
 		weather = new Label(forecast.get(0).shortForecast);
-		weather.setMaxWidth(400);
 		weather.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 24px; -fx-font-weight: 200; -fx-text-fill: white;");
 		weather.setAlignment(Pos.CENTER);
 		weather.setWrapText(true);
+		weather.setMaxWidth(400);
 
 		precipitationIcon = new Image("icons/precipitation.png");
 		precipitationIconView = new ImageView(precipitationIcon);
@@ -199,19 +199,19 @@ public class JavaFX extends Application {
 			threeDayForecast.setStyle("-fx-alignment: center; -fx-spacing: 15px; -fx-padding: 20px; -fx-background-color: linear-gradient(to bottom, #5c5ec1, #3d3f9c); ");
 		}
 
-		mainScene = new Scene(root, 500, 680);
+		mainScene = new Scene(root, 500, 700);
 		cityBox.setOnAction(e -> {
 			String selectedCity = cityBox.getValue();
 			if (selectedCity != null) {
 				updateWeather(selectedCity, primaryStage, mainScene, rootStyle);
 			}
 		});
-		Scene forecastScene = new Scene(threeDayForecast, 500, 680);
+		Scene forecastScene = new Scene(threeDayForecast, 500, 700);
 
 		change.setOnAction(e -> primaryStage.setScene(forecastScene));
 		back.setOnAction(e -> primaryStage.setScene(mainScene));
 
-		updateWeather("Chicago", primaryStage, mainScene, rootStyle);
+		updateWeather("Chicago, IL", primaryStage, mainScene, rootStyle);
 		primaryStage.setScene(mainScene);
 		primaryStage.show();
 	}
@@ -224,7 +224,7 @@ public class JavaFX extends Application {
 		VBox loadingScreen = new VBox(20, progressIndicator, loadingLabel);
 		loadingScreen.setAlignment(Pos.CENTER);
 		loadingScreen.setStyle(rootStyle);
-		primaryStage.setScene(new Scene(loadingScreen, 500, 680));
+		primaryStage.setScene(new Scene(loadingScreen, 500, 700));
 
 		PauseTransition pause = new PauseTransition(Duration.seconds(1));
 		pause.setOnFinished(event -> {
