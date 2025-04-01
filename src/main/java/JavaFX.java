@@ -56,7 +56,7 @@ public class JavaFX extends Application {
 		if (location == null){
 			throw new RuntimeException("Location did not load");
 		}
-		ArrayList<Period> forecast = WeatherAPI.getForecast(location.gridId,location.gridX,location.gridY);
+		ArrayList<Period> forecast = WeatherProxy.getForecast(location.gridId,location.gridX,location.gridY);
 		if (forecast == null){
 			throw new RuntimeException("Forecast did not load");
 		}
@@ -285,47 +285,9 @@ public class JavaFX extends Application {
 	}
 
 	private void setWeatherIcon(String shortForecast, boolean isDaytime, ImageView imageView) {
-		shortForecast = shortForecast.toLowerCase();
-
-		if (shortForecast.contains("hurricane")) {
-			imageView.setImage(hurricaneIcon);
-		} else if (shortForecast.contains("tornado")) {
-			imageView.setImage(tornadoIcon);
-		} else if (shortForecast.contains("thunder") && shortForecast.contains("snow")) {
-			imageView.setImage(thunderSnowIcon);
-		} else if (shortForecast.contains("thunderstorm")) {
-			imageView.setImage(thunderRainIcon);
-		} else if (shortForecast.contains("thunder")) {
-			imageView.setImage(thunderIcon);
-		} else if (shortForecast.contains("hail")) {
-			imageView.setImage(hailIcon);
-		} else if (shortForecast.contains("sleet") || shortForecast.contains("rain and snow")) {
-			imageView.setImage(sleetIcon);
-		} else if (shortForecast.contains("snow")) {
-			imageView.setImage(snowIcon);
-		} else if (shortForecast.contains("heavy rain") || shortForecast.contains("showers")) {
-			imageView.setImage(showersIcon);
-		} else if (shortForecast.contains("rain") || shortForecast.contains("drizzle")) {
-			imageView.setImage(rainIcon);
-		} else if (shortForecast.contains("dust")) {
-			imageView.setImage(dustIcon);
-		} else if (shortForecast.contains("fog")) {
-			imageView.setImage(fogIcon);
-		} else if (shortForecast.contains("haze")) {
-			imageView.setImage(hazeIcon);
-		} else if (shortForecast.contains("mist")) {
-			imageView.setImage(mistIcon);
-		} else if (shortForecast.contains("wind")) {
-			imageView.setImage(windyIcon);
-		} else if (shortForecast.contains("cloud") || shortForecast.contains("overcast")) {
-			imageView.setImage(cloudyIcon);
-		} else {
-			if (isDaytime) {
-				imageView.setImage(clearDayIcon);
-			} else {
-				imageView.setImage(clearNightIcon);
-			}
-		}
+		// Calls factory
+		ImageView createdIcon = WeatherIconFactory.createWeatherIcon(shortForecast, isDaytime);
+		imageView.setImage(createdIcon.getImage());
 	}
 
 	private HBox createWeatherBox(ArrayList<Period> forecast, int dayIndex, int nightIndex) {
