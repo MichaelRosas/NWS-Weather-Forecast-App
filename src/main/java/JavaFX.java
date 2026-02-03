@@ -16,43 +16,61 @@ import javafx.util.Duration;
 import weather.Period;
 import weather.WeatherAPI;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Main JavaFX application class for Weather Forecast App.
+ * Displays current weather and 3-day forecast for US cities.
+ */
 public class JavaFX extends Application {
+	// UI Components
 	ComboBox<String> cityBox;
-	Image precipitationIcon, speedIcon, directionIcon, clearNightIcon, clearDayIcon, cloudyIcon, rainIcon, fogIcon, hailIcon, hazeIcon, dustIcon, showersIcon, sleetIcon, snowIcon, thunderIcon, thunderRainIcon, thunderSnowIcon, hurricaneIcon, tornadoIcon, mistIcon, windyIcon;
+	Image precipitationIcon, speedIcon, directionIcon;
 	ImageView weatherIconView, precipitationIconView, speedIconView, directionIconView;
 	Label temperature, weather, precipitationValue, speedValue, directionValue, precipitationText, speedText, directionText;
 	VBox precipitationBox, speedBox, directionBox, root, threeDayForecast;
 	HBox infoBox, dayBox1, dayBox2, dayBox3;
 	Button change, back;
 
+	// Maps city names to [latitude, longitude] coordinates
 	public HashMap<String, double[]> cityCoordinates;
 
 	public static void main(String[] args) {
 		launch(args);
 	}
 
+	/**
+	 * Constructor - loads city data from CSV file
+	 */
 	public JavaFX() {
 		cityCoordinates = new HashMap<>();
-		try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/uscities-500.csv"))) {
+		try (InputStream is = getClass().getResourceAsStream(AppConstants.CITY_DATA_FILE);
+		     BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
 			String line;
-			br.readLine();
+			br.readLine(); // Skip header
 			while ((line = br.readLine()) != null) {
 				String[] values = line.split(",");
 				cityCoordinates.put((values[0]+", "+values[1]), new double[]{Double.parseDouble(values[2]), Double.parseDouble(values[3])});
 			}
 		} catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+			throw new RuntimeException("Failed to load city data", e);
+		} catch (NullPointerException e) {
+			throw new RuntimeException("City data file not found", e);
+		}
+	}
 
+	/**
+	 * Initializes and displays the main application window
+	 */
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		primaryStage.setTitle("Weather");
-		PointProperties location = MyWeatherAPI.getPoint(41.8373,-87.6862);
+		
+		// Load initial forecast for default city
+		PointProperties location = MyWeatherAPI.getPoint(AppConstants.DEFAULT_LAT, AppConstants.DEFAULT_LNG);
 		if (location == null){
 			throw new RuntimeException("Location did not load");
 		}
@@ -61,94 +79,80 @@ public class JavaFX extends Application {
 			throw new RuntimeException("Forecast did not load");
 		}
 
+		// Setup city selector dropdown
 		ArrayList<String> sortedCities = new ArrayList<>(cityCoordinates.keySet());
 		Collections.sort(sortedCities);
 		cityBox = new ComboBox<>();
 		cityBox.getItems().addAll(sortedCities);
-		cityBox.setPromptText("Chicago, IL");
+		cityBox.setPromptText(AppConstants.DEFAULT_CITY);
 		Scene mainScene;
 		cityBox.setStyle("-fx-background-color: white; -fx-font-family: 'Roboto Thin';  -fx-font-size: 16px; -fx-border-radius: 10px; -fx-padding: 5px;");
 
-		clearNightIcon = new Image("icons/clear-night.png");
-		clearDayIcon = new Image("icons/clear-day.png");
-		cloudyIcon = new Image("icons/cloudy.png");
-		rainIcon = new Image("icons/drizzle.png");
-		fogIcon = new Image("icons/fog.png");
-		hailIcon = new Image("icons/hail.png");
-		hazeIcon = new Image("icons/haze.png");
-		dustIcon = new Image("icons/dust.png");
-		showersIcon = new Image("icons/rain.png");
-		sleetIcon = new Image("icons/sleet.png");
-		snowIcon = new Image("icons/snow.png");
-		thunderIcon =  new Image("icons/thunderstorms.png");
-		thunderRainIcon = new Image("icons/thunderstorms-rain.png");
-		thunderSnowIcon = new Image("icons/thunderstorms-snow.png");
-		hurricaneIcon = new Image("icons/hurricane.png");
-		tornadoIcon = new Image("icons/tornado.png");
-		mistIcon = new Image("icons/mist.png");
-		windyIcon = new Image("icons/wind.png");
+		// Initialize main weather icon
 		weatherIconView = new ImageView();
-		weatherIconView.setFitWidth(120);
-		weatherIconView.setFitHeight(120);
+		weatherIconView.setFitWidth(AppConstants.WEATHER_ICON_SIZE);
+		weatherIconView.setFitHeight(AppConstants.WEATHER_ICON_SIZE);
 
 		setWeatherIcon(forecast.get(0).shortForecast, forecast.get(0).isDaytime, weatherIconView);
-		weatherIconView.setFitWidth(150);
-		weatherIconView.setFitHeight(150);
 
+		// Main temperature display
 		temperature = new Label(forecast.get(0).temperature + "°");
-		temperature.setMaxWidth(150);
 		temperature.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 80px; -fx-font-weight: 300; -fx-text-fill: white;");
 		temperature.setAlignment(Pos.CENTER);
+		temperature.setWrapText(true);
+		
+		// Weather description
 		weather = new Label(forecast.get(0).shortForecast);
 		weather.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 24px; -fx-font-weight: 200; -fx-text-fill: white;");
 		weather.setAlignment(Pos.CENTER);
 		weather.setWrapText(true);
-		weather.setMaxWidth(400);
+		weather.setMaxWidth(480);
 
+		// Initialize info icons (precipitation, wind speed, wind direction)
 		precipitationIcon = new Image("icons/precipitation.png");
 		precipitationIconView = new ImageView(precipitationIcon);
-		precipitationIconView.setFitWidth(50);
-		precipitationIconView.setFitHeight(50);
+		precipitationIconView.setFitWidth(AppConstants.INFO_ICON_SIZE);
+		precipitationIconView.setFitHeight(AppConstants.INFO_ICON_SIZE);
 		speedIcon = new Image("icons/speed.png");
 		speedIconView = new ImageView(speedIcon);
-		speedIconView.setFitWidth(50);
-		speedIconView.setFitHeight(50);
+		speedIconView.setFitWidth(AppConstants.INFO_ICON_SIZE);
+		speedIconView.setFitHeight(AppConstants.INFO_ICON_SIZE);
 		directionIcon = new Image("icons/direction.png");
 		directionIconView = new ImageView(directionIcon);
-		directionIconView.setFitWidth(50);
-		directionIconView.setFitHeight(50);
+		directionIconView.setFitWidth(AppConstants.INFO_ICON_SIZE);
+		directionIconView.setFitHeight(AppConstants.INFO_ICON_SIZE);
 
+		// Info box labels
 		precipitationText = new Label("Precipitation");
-		precipitationText.setMaxWidth(100);
 		precipitationText.setAlignment(Pos.CENTER);
-		precipitationText.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 100;");
+		precipitationText.setWrapText(true);
+		precipitationText.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 100; -fx-font-size: 12px;");
 		speedText = new Label("Wind Speed");
-		speedText.setMaxWidth(100);
 		speedText.setAlignment(Pos.CENTER);
-		speedText.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 100;");
+		speedText.setWrapText(true);
+		speedText.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 100; -fx-font-size: 12px;");
 		directionText = new Label("Wind Direction");
-		directionText.setMaxWidth(100);
 		directionText.setAlignment(Pos.CENTER);
-		directionText.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 100;");
-
+		directionText.setWrapText(true);
+		directionText.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 100; -fx-font-size: 12px;");
 		precipitationValue = new Label(forecast.get(0).probabilityOfPrecipitation.value + "%");
-		precipitationValue.setMaxWidth(80);
 		precipitationValue.setAlignment(Pos.CENTER);
+		precipitationValue.setWrapText(true);
 		precipitationValue.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 200; -fx-font-size: 16;");
 		speedValue = new Label(forecast.get(0).windSpeed);
-		speedValue.setMaxWidth(95);
-		speedValue.setPrefWidth(95);
 		speedValue.setAlignment(Pos.CENTER);
+		speedValue.setWrapText(true);
 		speedValue.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 200; -fx-font-size: 16;");
 		if(Objects.equals(forecast.get(0).windSpeed, "0 mph")) {
 			directionValue = new Label("N/A");
 		} else {
 			directionValue = new Label(forecast.get(0).windDirection);
 		}
-		directionValue.setMaxWidth(80);
 		directionValue.setAlignment(Pos.CENTER);
+		directionValue.setWrapText(true);
 		directionValue.setStyle("-fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-weight: 200; -fx-font-size: 16;");
 
+		// Organize info sections into boxes
 		precipitationBox = new VBox(10, precipitationIconView, precipitationValue, precipitationText);
 		precipitationBox.setAlignment(Pos.CENTER);
 		precipitationBox.setMaxWidth(115);
@@ -159,20 +163,24 @@ public class JavaFX extends Application {
 		directionBox.setAlignment(Pos.CENTER);
 		directionBox.setMaxWidth(115);
 
+		// Combine info boxes into single container
 		infoBox = new HBox(20, precipitationBox, speedBox, directionBox);
 		infoBox.setStyle("-fx-background-color: rgba(186,186,186,0.3); -fx-background-radius: 20px; -fx-padding: 10px 20px;");
 		infoBox.setAlignment(Pos.CENTER);
-		infoBox.setMaxWidth(345);
-		infoBox.setSpacing(30);
+		infoBox.setMaxWidth(480);
+		infoBox.setSpacing(20);
 
+		// Button to switch to 3-day forecast view
 		change = new Button("See 3 Day Forecast");
 		change.setStyle("-fx-background-color: orange; -fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px 20px; -fx-background-radius: 20px;");
-		change.setPrefWidth(180);
+		change.setPrefWidth(210);
 
+		// Main layout container
 		root = new VBox(10, cityBox, weatherIconView, temperature, weather, infoBox, change);
 		root.setAlignment(Pos.CENTER);
 		root.setSpacing(20);
 
+		// Create 3-day forecast boxes (skip current day)
 		if (forecast.get(0).isDaytime) {
 			dayBox1 = createWeatherBox(forecast, 2, 3);
 			dayBox2 = createWeatherBox(forecast, 4, 5);
@@ -183,11 +191,13 @@ public class JavaFX extends Application {
 			dayBox3 = createWeatherBox(forecast, 5, 6);
 		}
 
+		// Back button for returning from forecast view
 		back = new Button("Go Back");
 		back.setStyle("-fx-background-color: orange; -fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px 20px; -fx-background-radius: 20px;");
 		back.setPrefWidth(180);
 		threeDayForecast = new VBox(15, dayBox1, dayBox2, dayBox3, back);
 
+		// Apply day/night theme
 		String rootStyle;
 		if (forecast.get(0).isDaytime) {
 			rootStyle = "-fx-background-color: linear-gradient(to bottom, #6dafd6, #4682B4); -fx-padding: 20px;";
@@ -199,24 +209,37 @@ public class JavaFX extends Application {
 			threeDayForecast.setStyle("-fx-alignment: center; -fx-spacing: 15px; -fx-padding: 20px; -fx-background-color: linear-gradient(to bottom, #5c5ec1, #3d3f9c); ");
 		}
 
-		mainScene = new Scene(root, 500, 700);
+		// Create scenes
+		mainScene = new Scene(root, AppConstants.WINDOW_WIDTH, AppConstants.WINDOW_HEIGHT);
+		
+		// City selection event handler
 		cityBox.setOnAction(e -> {
 			String selectedCity = cityBox.getValue();
 			if (selectedCity != null) {
 				updateWeather(selectedCity, primaryStage, mainScene, rootStyle);
 			}
 		});
-		Scene forecastScene = new Scene(threeDayForecast, 500, 700);
+		Scene forecastScene = new Scene(threeDayForecast, AppConstants.WINDOW_WIDTH, AppConstants.WINDOW_HEIGHT);
 
+		// Button handlers for switching between views
 		change.setOnAction(e -> primaryStage.setScene(forecastScene));
 		back.setOnAction(e -> primaryStage.setScene(mainScene));
 
-		updateWeather("Chicago, IL", primaryStage, mainScene, rootStyle);
+		// Load initial city and display
+		updateWeather(AppConstants.DEFAULT_CITY, primaryStage, mainScene, rootStyle);
 		primaryStage.setScene(mainScene);
 		primaryStage.show();
 	}
 
+	/**
+	 * Updates weather display for selected city with loading screen
+	 * @param city City name to load weather for
+	 * @param primaryStage Main application stage
+	 * @param mainScene Scene to return to after loading
+	 * @param rootStyle CSS style for background theme
+	 */
 	public void updateWeather(String city, Stage primaryStage, Scene mainScene, String rootStyle) {
+		// Display loading screen
 		ProgressIndicator progressIndicator = new ProgressIndicator();
 		progressIndicator.setStyle("-fx-progress-color: orange;");
 		Label loadingLabel = new Label("Loading...");
@@ -224,22 +247,32 @@ public class JavaFX extends Application {
 		VBox loadingScreen = new VBox(20, progressIndicator, loadingLabel);
 		loadingScreen.setAlignment(Pos.CENTER);
 		loadingScreen.setStyle(rootStyle);
-		primaryStage.setScene(new Scene(loadingScreen, 500, 700));
+		primaryStage.setScene(new Scene(loadingScreen, AppConstants.WINDOW_WIDTH, AppConstants.WINDOW_HEIGHT));
 
-		PauseTransition pause = new PauseTransition(Duration.seconds(1));
+		PauseTransition pause = new PauseTransition(Duration.millis(AppConstants.LOADING_DELAY_MS));
 		pause.setOnFinished(event -> {
 			Platform.runLater(() -> {
-				double[] coordinates = cityCoordinates.get(city);
-				if (coordinates != null) {
+				try {
+					// Fetch weather data for selected city
+					double[] coordinates = cityCoordinates.get(city);
+					if (coordinates == null) {
+						showError(primaryStage, mainScene, "City not found: " + city);
+						return;
+					}
+					
 					PointProperties location = MyWeatherAPI.getPoint(coordinates[0], coordinates[1]);
 					if (location == null) {
-						throw new RuntimeException("Location did not load");
+						showError(primaryStage, mainScene, "Failed to get location data. Please try again.");
+						return;
 					}
+					
 					ArrayList<Period> forecast = WeatherAPI.getForecast(location.gridId, location.gridX, location.gridY);
 					if (forecast == null) {
-						throw new RuntimeException("Forecast did not load");
+						showError(primaryStage, mainScene, "Failed to get weather forecast. Please try again.");
+						return;
 					}
 
+					// Update main screen with new weather data
 					temperature.setText(forecast.get(0).temperature + "°");
 					weather.setText(forecast.get(0).shortForecast);
 					precipitationValue.setText(forecast.get(0).probabilityOfPrecipitation.value + "%");
@@ -252,6 +285,7 @@ public class JavaFX extends Application {
 
 					setWeatherIcon(forecast.get(0).shortForecast, forecast.get(0).isDaytime, weatherIconView);
 
+					// Update 3-day forecast boxes
 					dayBox1.getChildren().clear();
 					dayBox2.getChildren().clear();
 					dayBox3.getChildren().clear();
@@ -268,6 +302,7 @@ public class JavaFX extends Application {
 
 					threeDayForecast.getChildren().setAll(dayBox1, dayBox2, dayBox3, back);
 
+					// Update theme based on time of day
 					if (forecast.get(0).isDaytime) {
 						root.setStyle("-fx-background-color: linear-gradient(to bottom, #6dafd6, #4682B4); -fx-padding: 20px;");
 						threeDayForecast.setStyle("-fx-alignment: center; -fx-spacing: 15px; -fx-padding: 20px; -fx-background-color: linear-gradient(to bottom, #6dafd6, #4682B4); ");
@@ -277,6 +312,9 @@ public class JavaFX extends Application {
 					}
 
 					primaryStage.setScene(mainScene);
+				} catch (Exception e) {
+					e.printStackTrace();
+					showError(primaryStage, mainScene, "An error occurred: " + e.getMessage());
 				}
 			});
 		});
@@ -284,16 +322,57 @@ public class JavaFX extends Application {
 		pause.play();
 	}
 
+	/**
+	 * Displays error dialog to user
+	 * @param stage Application stage
+	 * @param returnScene Scene to return to when dismissed
+	 * @param message Error message to display
+	 */
+	private void showError(Stage stage, Scene returnScene, String message) {
+		Label errorLabel = new Label("Error");
+		errorLabel.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: white;");
+		
+		Label errorMessage = new Label(message);
+		errorMessage.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 18px; -fx-text-fill: white;");
+		errorMessage.setWrapText(true);
+		errorMessage.setMaxWidth(400);
+		errorMessage.setAlignment(Pos.CENTER);
+		
+		Button okButton = new Button("OK");
+		okButton.setStyle("-fx-background-color: orange; -fx-font-family: 'Roboto Thin'; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px 20px; -fx-background-radius: 20px;");
+		okButton.setOnAction(e -> stage.setScene(returnScene));
+		
+		VBox errorBox = new VBox(20, errorLabel, errorMessage, okButton);
+		errorBox.setAlignment(Pos.CENTER);
+		errorBox.setStyle("-fx-background-color: linear-gradient(to bottom, #5c5ec1, #3d3f9c); -fx-padding: 40px;");
+		
+		Scene errorScene = new Scene(errorBox, AppConstants.WINDOW_WIDTH, AppConstants.WINDOW_HEIGHT);
+		stage.setScene(errorScene);
+	}
+
+	/**
+	 * Sets weather icon based on forecast description
+	 * @param shortForecast Weather description text
+	 * @param isDaytime Whether it's currently daytime
+	 * @param imageView ImageView to update with icon
+	 */
 	private void setWeatherIcon(String shortForecast, boolean isDaytime, ImageView imageView) {
 		// Calls factory
 		ImageView createdIcon = WeatherIconFactory.createWeatherIcon(shortForecast, isDaytime);
 		imageView.setImage(createdIcon.getImage());
 	}
 
+	/**
+	 * Creates a weather forecast box for a single day
+	 * @param forecast Complete forecast data
+	 * @param dayIndex Index for daytime forecast
+	 * @param nightIndex Index for nighttime forecast
+	 * @return HBox containing the day's weather information
+	 */
 	private HBox createWeatherBox(ArrayList<Period> forecast, int dayIndex, int nightIndex) {
 		ImageView weatherIcon = new ImageView();
-		weatherIcon.setFitWidth(70);
-		weatherIcon.setFitHeight(70);
+		weatherIcon.setFitWidth(AppConstants.WEATHER_ICON_SMALL);
+		weatherIcon.setFitHeight(AppConstants.WEATHER_ICON_SMALL);
 		setWeatherIcon(forecast.get(dayIndex).shortForecast, forecast.get(dayIndex).isDaytime, weatherIcon);
 
 		Label precipitationLabel = new Label(forecast.get(dayIndex).probabilityOfPrecipitation.value + "%");
@@ -303,13 +382,14 @@ public class JavaFX extends Application {
 		weatherIconBox.setAlignment(Pos.CENTER);
 
 		Label dayLabel = new Label(forecast.get(dayIndex).name);
-		dayLabel.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 28px; -fx-text-fill: white; -fx-font-weight: bold;");
+		dayLabel.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 24px; -fx-text-fill: white; -fx-font-weight: bold;");
+		dayLabel.setWrapText(true);
 		Label forecastLabel = new Label(forecast.get(dayIndex).shortForecast);
-		forecastLabel.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 18px; -fx-text-fill: white;");
+		forecastLabel.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 16px; -fx-text-fill: white;");
 		forecastLabel.setWrapText(true);
-		VBox forecastBox = new VBox(15, dayLabel, forecastLabel);
-		forecastBox.setPrefWidth(300);
-		forecastBox.setAlignment(Pos.CENTER);
+		forecastLabel.setMaxWidth(200);
+		VBox forecastBox = new VBox(10, dayLabel, forecastLabel);
+		forecastBox.setMaxWidth(200);
 
 		Label dayTempLabel = new Label(forecast.get(dayIndex).temperature + "°");
 		dayTempLabel.setStyle("-fx-font-family: 'Roboto Thin'; -fx-font-size: 50px; -fx-text-fill: white; -fx-font-weight: 500;");

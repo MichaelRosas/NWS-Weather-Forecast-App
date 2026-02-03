@@ -7,11 +7,19 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-
+/**
+ * Extension of WeatherAPI that adds point/grid lookup functionality
+ */
 public class MyWeatherAPI extends WeatherAPI {
+    /**
+     * Gets grid point properties for geographic coordinates
+     * @param lat Latitude
+     * @param lng Longitude
+     * @return PointProperties containing grid information, or null if unavailable
+     */
     public static PointProperties getPoint(double lat, double lng) {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.weather.gov/points/"+String.valueOf(lat)+","+String.valueOf(lng)))
+                .uri(URI.create(AppConstants.WEATHER_API_BASE_URL + "/points/" + lat + "," + lng))
                 //.method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
         HttpResponse<String> response = null;
@@ -27,6 +35,12 @@ public class MyWeatherAPI extends WeatherAPI {
         }
         return p;
     }
+    
+    /**
+     * Parses JSON response into PointProperties object
+     * @param json JSON string from API response
+     * @return PointProperties object, or null if parsing fails
+     */
     public static PointProperties getPointObject(String json){
         ObjectMapper om = new ObjectMapper();
         PointProperties toRet = null;

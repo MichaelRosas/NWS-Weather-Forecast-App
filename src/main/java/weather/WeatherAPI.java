@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper; // version 2.11.1
 public class WeatherAPI {
     public static ArrayList<Period> getForecast(String region, int gridx, int gridy) {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.weather.gov/gridpoints/"+region+"/"+String.valueOf(gridx)+","+String.valueOf(gridy)+"/forecast"))
+                .uri(URI.create("https://api.weather.gov/gridpoints/" + region + "/" + gridx + "," + gridy + "/forecast"))
                 //.method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
         HttpResponse<String> response = null;
@@ -34,8 +34,6 @@ public class WeatherAPI {
         Root toRet = null;
         try {
             toRet = om.readValue(json, Root.class);
-            ArrayList<Period> p = toRet.properties.periods;
-
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

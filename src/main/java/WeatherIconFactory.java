@@ -1,9 +1,13 @@
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+/**
+ * Factory class for creating weather icons based on forecast descriptions.
+ * Uses singleton pattern for icon caching.
+ */
 public class WeatherIconFactory {
 
-    // Loads all icons
+    // Preloaded weather icons (cached in memory)
     private static final Image hurricaneIcon = new Image("icons/hurricane.png");
     private static final Image tornadoIcon = new Image("icons/tornado.png");
     private static final Image thunderSnowIcon = new Image("icons/thunderstorms-snow.png");
@@ -23,10 +27,16 @@ public class WeatherIconFactory {
     private static final Image clearDayIcon = new Image("icons/clear-day.png");
     private static final Image clearNightIcon = new Image("icons/clear-night.png");
 
+    /**
+     * Creates weather icon ImageView based on forecast description
+     * @param shortForecast Weather description from forecast
+     * @param isDaytime True if daytime, false if nighttime
+     * @return ImageView with appropriate weather icon
+     */
     public static ImageView createWeatherIcon(String shortForecast, boolean isDaytime) {
         ImageView weatherIconView = new ImageView();
-        weatherIconView.setFitWidth(150);
-        weatherIconView.setFitHeight(150);
+        weatherIconView.setFitWidth(AppConstants.WEATHER_ICON_SIZE);
+        weatherIconView.setFitHeight(AppConstants.WEATHER_ICON_SIZE);
 
         // Set icon based on words in shortForecast
         if (shortForecast.contains("hurricane")) {
